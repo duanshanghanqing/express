@@ -304,9 +304,10 @@ app.get('/file/:name', function (req, res, next) {
 //6.express.Router可使用 express.Router 类创建模块化、可挂载的路由句柄。Router 实例是一个完整的中间件和路由系统，因此常称其为一个 “mini-app”。
 //下面的实例程序创建了一个路由模块，并加载了一个中间件，定义了一些路由，并且将它们挂载至应用的路径上。
 //在 app 目录下创建名为 birds.js 的文件，内容如下：
+/*
 var birds = require('./birds');//在主文件导入封装的路由
 app.use('/', birds);//使用路由以当前域名为根路径   http://localhost:3000
-
+*/
 
 /*
  三.访问静态文件
@@ -324,6 +325,7 @@ app.use('/', birds);//使用路由以当前域名为根路径   http://localhost
 /*
 四。使用cookie
 */
+/*
 //使用cookie
 var cookieParser = require('cookie-parser');
 var app = express();
@@ -336,6 +338,36 @@ app.get('/', function (req, res) {
     } else { // 否则，设置 cookie 字段 isVisit, 并设置过期时间为1分钟
         res.cookie('isVisit', 1, {maxAge: 60 * 1000});
         res.send("欢迎第一次访问");
+    }
+});
+*/
+
+/*
+ 四。使用session
+ 跟cookie一样都需要单独的安装和引用模块， 安装模块：npm install express-session 主要的方法就是 session(options)，其中 options 中包含可选参数，主要有：
+ name: 设置 cookie 中，保存 session 的字段名称，默认为 connect.sid 。
+ store: session 的存储方式，默认存放在内存中，也可以使用 redis，mongodb 等。express 生态中都有相应模块的支持。
+ secret: 通过设置的 secret 字符串，来计算 hash 值并放在 cookie 中，使产生的 signedCookie 防篡改。
+ cookie: 设置存放 session id 的 cookie 的相关选项，默认为 (default: { path: '/', httpOnly: true, secure: false, maxAge: null })
+ genid: 产生一个新的 session_id 时，所使用的函数， 默认使用 uid2 这个 npm 包。
+ rolling: 每个请求都重新设置一个 cookie，默认为 false。
+ resave: 即使 session 没有被修改，也保存 session 值，默认为 true。
+ */
+var session = require('express-session');
+app.use(session({
+    secret: 'hubwiz app', //secret的值建议使用随机字符串.通过设置的 secret 字符串，来计算 hash 值并放在 cookie 中，使产生的 signedCookie 防篡改。
+    cookie: {maxAge: 60 * 1000 * 30} // 过期时间（毫秒）
+}));
+app.get('/', function (req, res) {
+    console.log(req.session.sign);//在session域里存储一个属性sign，用来记录回话状态。初始值为undefined
+    if (req.session.sign) {//undefined = false
+        console.log(req.session);//打印session的值
+        res.send('welecome <strong>' + req.session.name + '</strong>, 欢迎你再次登录');//读取保存的相关相关信息
+    } else {
+        //修改状态
+        req.session.sign = true;
+        req.session.name = '汇智网';//保存相关信息
+        res.send('欢迎登陆！');
     }
 });
 
